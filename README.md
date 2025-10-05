@@ -1,8 +1,8 @@
 # Custom Archiver
 
 ## Team Members
-- Keter_303
-
+- @Keter_303
+- @BladeSparrow
 ## Project Name
 Custom Archiver K88
 
