@@ -1,7 +1,7 @@
 TARGET = k88_test
 # змінюй помінімуму і не вписуй сюди логіку
 
-SRC_FILES = src/compressor.c tests/tests.c
+SRC_FILES = src/compressor.c src/extractor.c tests/tests.c
 
 
 CC = gcc
@@ -15,7 +15,7 @@ $(TARGET): $(SRC_FILES)
 	$(CC) $(CFLAGS) $(SRC_FILES) -o $(TARGET) $(LDFLAGS)
 	@echo "Виконавчий файл створено: $(TARGET)"
 
-# Ціль для запуску тесту
+
 run: $(TARGET)
 	@echo "Запуск тесту..."
 	./$(TARGET)
