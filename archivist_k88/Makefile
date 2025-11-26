@@ -6,7 +6,7 @@ SRC_TEST = tests/tests.c
 SRC_CLI = src/k88_main.c
 
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99
+CFLAGS = -Wall -Wextra -std=c99 -Iinclude
 LDFLAGS = -lz
 
 all: $(TARGET_TEST) $(TARGET_CLI)
@@ -28,7 +28,8 @@ run: test
 help-cli: $(TARGET_CLI)
 	./$(TARGET_CLI) --help
 
-clean:
-	rm -f $(TARGET_TEST) $(TARGET_CLI)
 
-.PHONY: all run clean
+clean:
+	rm -f $(TARGET_TEST) $(TARGET_CLI) *.o
+
+.PHONY: all run test help-cli clean
