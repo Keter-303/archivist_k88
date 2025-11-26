@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h> 
+#include <stdbool.h> 
+
 
 
 // Функції для стиснення та розпакування файлів (--compress та --extract)
@@ -15,9 +17,10 @@ int extract_file(const char *input_path, const char *output_path, bool decrypt);
 int compress_directory(const char *input_path, const char *output_path, bool encrypt);
 int extract_directory(const char *input_path, const char *output_path, bool decrypt);
 
-// Функції для криптографії (--encrypt та --decrypt)
-int encrypt_data(uint8_t *data, size_t len, const char *password, uint8_t **out_data, size_t *out_len);
-int decrypt_data(uint8_t *data, size_t len, const char *password, uint8_t **out_data, size_t *out_len);
+
+// Функції шифрування/дешифрування OpenSSL
+int encrypt_file_openssl(const char *in_path, const char *out_path, const char *key_phrase);
+int decrypt_file_openssl(const char *in_path, const char *out_path, const char *key_phrase);
 
 // Функції для k88_main.c (-h та інші)
 void print_help(const char *program_name);

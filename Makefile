@@ -1,12 +1,12 @@
 TARGET = k88_test
 # змінюй помінімуму і не вписуй сюди логіку
 
-SRC_FILES = src/compressor.c src/extractor.c tests/tests.c
+SRC_FILES = src/compressor.c src/extractor.c tests/tests.c src/crypto.c
 
 
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99
-LDFLAGS = -lz
+LDFLAGS = -lz -lcrypto
 
 
 all: $(TARGET)
