@@ -6,10 +6,10 @@
 #include <openssl/rand.h>
 #include <openssl/err.h>
 
-#define SALT_SIZE 8     // Salt size (8 bytes)
-#define KEY_SIZE 32     // AES-256 key
-#define IV_SIZE 16      // AES-256-CBC initialization vector
-#define ITERATIONS 1    // Iterations for EVP_BytesToKey
+#define SALT_SIZE 8
+#define KEY_SIZE 32
+#define IV_SIZE 16
+#define ITERATIONS 1
 
 
 static void handleErrors(void) {
@@ -58,7 +58,7 @@ static int do_crypt_block(uint8_t *in_data, size_t in_len, const char *password,
     if (!EVP_BytesToKey(EVP_aes_256_cbc(), EVP_sha256(), salt, 
                        (unsigned char *)password, strlen(password), 
                        ITERATIONS, key, iv)) {
-        fprintf(stderr, "EVP_BytesToKey error (wrong password?).\n"); goto cleanup;
+        fprintf(stderr, "EVP_BytesToKey error.\n"); goto cleanup;
     }
 
     *out_data = (uint8_t *)malloc(alloc_size);
@@ -85,7 +85,7 @@ static int do_crypt_block(uint8_t *in_data, size_t in_len, const char *password,
 
 
     if (EVP_CipherFinal_ex(ctx, *out_data + data_offset + len, &final_len) != 1) { 
-        fprintf(stderr, "OpenSSL finalization error (wrong password/data?).\n");
+        fprintf(stderr, "OpenSSL finalization error.\n");
         goto cleanup;
     }
     *out_len += final_len;
@@ -109,11 +109,11 @@ cleanup:
 
 
 int encrypt_data(uint8_t *data, size_t len, const char *password, uint8_t **out_data, size_t *out_len) {
-    return do_crypt_block(data, len, password, out_data, out_len, 1 /* ENCRYPT */);
+    return do_crypt_block(data, len, password, out_data, out_len, 1);
 }
 
 int decrypt_data(uint8_t *data, size_t len, const char *password, uint8_t **out_data, size_t *out_len) {
-    return do_crypt_block(data, len, password, out_data, out_len, 0 /* DECRYPT */);
+    return do_crypt_block(data, len, password, out_data, out_len, 0);
 }
 
 static uint8_t *read_file_to_buffer(const char *path, size_t *len) {
@@ -175,8 +175,7 @@ int decrypt_file_openssl(const char *in_path, const char *out_path, const char *
     if (!in_buffer) return -1;
 
     if (decrypt_data(in_buffer, in_len, key_phrase, &out_buffer, &out_len) != 0) {
-        
-    fprintf(stderr, "Block decryption error (wrong password?).\n");
+        fprintf(stderr, "Block decryption error.\n");
         goto cleanup;
     }
 

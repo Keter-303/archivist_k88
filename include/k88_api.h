@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <stddef.h> 
 
-
+#define MY_PATH_MAX 4099
 
 int compress_file(const char *input_path, const char *output_path);
 int extract_file(const char *input_path, const char *output_path);
@@ -24,4 +24,4 @@ int encrypt_file_openssl(const char *in_path, const char *out_path, const char *
 int decrypt_file_openssl(const char *in_path, const char *out_path, const char *key_phrase);
 void print_help(const char *program_name);
 
-#endif // K88_API_H
+#endif

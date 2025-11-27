@@ -9,12 +9,7 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <limits.h>
-
-#ifndef PATH_MAX
-#define MY_PATH_MAX 4096
-#else
-#define MY_PATH_MAX PATH_MAX
-#endif
+#include <errno.h> // ДОДАНО: Для errno та EEXIST
 
 #define CHUNK 16384
 #define K88_MAGIC "K88ARC\n"
@@ -34,7 +29,6 @@ static int read_all(FILE *f, void *buf, size_t len) {
 }
 
 int extract_file(const char *input_path, const char *output_dir) {
-    // decompress input_path into a temporary file
     char tmpl[64];
     snprintf(tmpl, sizeof(tmpl), "/tmp/k88arc_in_%d.tmp", (int)getpid());
     FILE *tmp = fopen(tmpl, "wb");
@@ -66,30 +60,30 @@ int extract_file(const char *input_path, const char *output_dir) {
 
     if (result != Z_STREAM_END) { result = -1; }
     inflateEnd(&strm);
-    fflush(tmp); fclose(tmp); fclose(in_fp);
+    
+    if (result == Z_STREAM_END) {
+        fflush(tmp); fclose(tmp); fclose(in_fp);
+    } else {
+        if (in_fp) fclose(in_fp);
+        if (tmp) { fflush(tmp); fclose(tmp); }
+    }
 
 cleanup:
     if (result != Z_OK && result != Z_STREAM_END && result != 0) {
-        // cleanup resources on error
-        inflateEnd(&strm);
-        if (in_fp) fclose(in_fp);
-        if (tmp) { fflush(tmp); fclose(tmp); }
         unlink(tmpl);
         return -1;
     }
 
-    // now read archive from tmpl and extract entries
     FILE *arc = fopen(tmpl, "rb");
     if (!arc) { unlink(tmpl); return -1; }
 
-    // verify magic
     char magic[8] = {0};
     if (read_all(arc, magic, strlen(K88_MAGIC)) != 0) { fclose(arc); unlink(tmpl); return -1; }
     if (strncmp(magic, K88_MAGIC, strlen(K88_MAGIC)) != 0) { fprintf(stderr, "Invalid archive\n"); fclose(arc); unlink(tmpl); return -1; }
 
     while (1) {
         unsigned char type;
-        if (fread(&type, 1, 1, arc) != 1) break; // EOF
+        if (fread(&type, 1, 1, arc) != 1) break;
         uint32_t be_pathlen;
         if (read_all(arc, &be_pathlen, sizeof(be_pathlen)) != 0) { fclose(arc); unlink(tmpl); return -1; }
         uint32_t pathlen = from_be32(be_pathlen);
@@ -106,17 +100,25 @@ cleanup:
         uint32_t mode = from_be32(be_mode);
 
         char outpath[MY_PATH_MAX];
-        snprintf(outpath, MY_PATH_MAX, "%s/%s", output_dir, pathbuf);
+        if (snprintf(outpath, MY_PATH_MAX, "%s/%s", output_dir, pathbuf) >= MY_PATH_MAX) {
+             fclose(arc); unlink(tmpl); return -1;
+        }
 
         if (type == 'D') {
-            // create directory
             if (mkdir(outpath, mode) != 0) {
-                // ignore EEXIST
+                if (errno != EEXIST) { fclose(arc); unlink(tmpl); return -1; }
             }
         } else if (type == 'F') {
-            // ensure parent dir exists
-            char parent[MY_PATH_MAX]; strncpy(parent, outpath, MY_PATH_MAX); char *p = strrchr(parent, '/');
-            if (p) { *p = '\0'; mkdir(parent, 0755); }
+            char parent[MY_PATH_MAX]; strncpy(parent, outpath, MY_PATH_MAX); 
+            parent[MY_PATH_MAX-1] = '\0';
+            char *p = strrchr(parent, '/');
+            if (p) { 
+                *p = '\0'; 
+                if (mkdir(parent, 0755) != 0 && errno != EEXIST) {
+                    fclose(arc); unlink(tmpl); return -1;
+                }
+            }
+            
             FILE *of = fopen(outpath, "wb");
             if (!of) { fclose(arc); unlink(tmpl); return -1; }
             uint64_t remaining = fsize;
@@ -130,7 +132,6 @@ cleanup:
             fclose(of);
             chmod(outpath, mode);
         } else {
-            // unknown type, skip
             if (fseek(arc, fsize, SEEK_CUR) != 0) { fclose(arc); unlink(tmpl); return -1; }
         }
     }

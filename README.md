@@ -8,3 +8,17 @@ Custom Archiver K88
 
 ## Description
 C project: an archiver program that can combine multiple files or directories into a single archive with support for compression and encryption.
+
+## Install
+
+git clone https://github.com/Keter-303/archivist_k88.git
+
+cd archivist_k88/
+
+make
+
+./k88 -h
+
+chmod +x install_k88.sh
+
+sudo ./install_k88.sh
