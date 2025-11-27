@@ -6,10 +6,10 @@
 #include <openssl/rand.h>
 #include <openssl/err.h>
 
-#define SALT_SIZE 8     // Розмір Salt (8 байт)
-#define KEY_SIZE 32     // AES-256 ключ
-#define IV_SIZE 16      // AES-256-CBC Вектор ініціалізації
-#define ITERATIONS 1    // Ітерації для EVP_BytesToKey
+#define SALT_SIZE 8     // Salt size (8 bytes)
+#define KEY_SIZE 32     // AES-256 key
+#define IV_SIZE 16      // AES-256-CBC initialization vector
+#define ITERATIONS 1    // Iterations for EVP_BytesToKey
 
 
 static void handleErrors(void) {
@@ -36,7 +36,7 @@ static int do_crypt_block(uint8_t *in_data, size_t in_len, const char *password,
     if (encrypt_mode) {
 
         if (!RAND_bytes(salt, SALT_SIZE)) {
-            fprintf(stderr, "Помилка генерації Salt.\n"); goto cleanup;
+            fprintf(stderr, "Error generating salt.\n"); goto cleanup;
         }
 
         alloc_size = SALT_SIZE + in_len + EVP_MAX_BLOCK_LENGTH;
@@ -44,7 +44,7 @@ static int do_crypt_block(uint8_t *in_data, size_t in_len, const char *password,
     } else {
 
         if (in_len < SALT_SIZE) {
-            fprintf(stderr, "Дані занадто короткі, немає місця для Salt.\n"); goto cleanup;
+            fprintf(stderr, "Data too short, no space for salt.\n"); goto cleanup;
         }
         memcpy(salt, in_data, SALT_SIZE);
         in_data += SALT_SIZE; 
@@ -58,12 +58,12 @@ static int do_crypt_block(uint8_t *in_data, size_t in_len, const char *password,
     if (!EVP_BytesToKey(EVP_aes_256_cbc(), EVP_sha256(), salt, 
                        (unsigned char *)password, strlen(password), 
                        ITERATIONS, key, iv)) {
-        fprintf(stderr, "Помилка EVP_BytesToKey (Невірний пароль?).\n"); goto cleanup;
+        fprintf(stderr, "EVP_BytesToKey error (wrong password?).\n"); goto cleanup;
     }
 
     *out_data = (uint8_t *)malloc(alloc_size);
     if (*out_data == NULL) {
-        perror("Помилка malloc"); goto cleanup;
+        perror("malloc error"); goto cleanup;
     }
 
 
@@ -85,7 +85,7 @@ static int do_crypt_block(uint8_t *in_data, size_t in_len, const char *password,
 
 
     if (EVP_CipherFinal_ex(ctx, *out_data + data_offset + len, &final_len) != 1) { 
-        fprintf(stderr, "Помилка фіналізації OpenSSL (Невірний пароль/дані?).\n");
+        fprintf(stderr, "OpenSSL finalization error (wrong password/data?).\n");
         goto cleanup;
     }
     *out_len += final_len;
@@ -118,14 +118,14 @@ int decrypt_data(uint8_t *data, size_t len, const char *password, uint8_t **out_
 
 static uint8_t *read_file_to_buffer(const char *path, size_t *len) {
     FILE *fp = fopen(path, "rb");
-    if (!fp) { perror("Помилка відкриття файлу для читання"); return NULL; }
+    if (!fp) { perror("Error opening file for reading"); return NULL; }
     fseek(fp, 0, SEEK_END);
     *len = ftell(fp);
     rewind(fp);
     uint8_t *buffer = (uint8_t *)malloc(*len);
-    if (!buffer) { fclose(fp); perror("Помилка malloc"); return NULL; }
+    if (!buffer) { fclose(fp); perror("malloc error"); return NULL; }
     if (fread(buffer, 1, *len, fp) != *len) {
-        free(buffer); fclose(fp); perror("Помилка читання файлу"); return NULL;
+        free(buffer); fclose(fp); perror("Error reading file"); return NULL;
     }
     fclose(fp);
     return buffer;
@@ -133,9 +133,9 @@ static uint8_t *read_file_to_buffer(const char *path, size_t *len) {
 
 static int write_buffer_to_file(const char *path, uint8_t *data, size_t len) {
     FILE *fp = fopen(path, "wb");
-    if (!fp) { perror("Помилка відкриття файлу для запису"); return -1; }
+    if (!fp) { perror("Error opening file for writing"); return -1; }
     if (fwrite(data, 1, len, fp) != len) {
-        fclose(fp); perror("Помилка запису файлу"); return -1;
+        fclose(fp); perror("Error writing file"); return -1;
     }
     fclose(fp);
     return 0;
@@ -150,7 +150,7 @@ int encrypt_file_openssl(const char *in_path, const char *out_path, const char *
     if (!in_buffer) return -1;
 
     if (encrypt_data(in_buffer, in_len, key_phrase, &out_buffer, &out_len) != 0) {
-        fprintf(stderr, "Помилка блокового шифрування.\n");
+        fprintf(stderr, "Block encryption error.\n");
         goto cleanup;
     }
 
@@ -176,7 +176,7 @@ int decrypt_file_openssl(const char *in_path, const char *out_path, const char *
 
     if (decrypt_data(in_buffer, in_len, key_phrase, &out_buffer, &out_len) != 0) {
         
-        fprintf(stderr, "Помилка блокового дешифрування (Неправильний пароль?).\n");
+    fprintf(stderr, "Block decryption error (wrong password?).\n");
         goto cleanup;
     }
 

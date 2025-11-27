@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <zlib.h> 
 
-// Визначаємо розмір буфера для читання/запису (16 KB)
+
 #define CHUNK 16384 
 
 int compress_file(const char *input_path, const char *output_path, bool encrypt) {
@@ -21,15 +21,15 @@ int compress_file(const char *input_path, const char *output_path, bool encrypt)
     strm.opaque = Z_NULL;
     
     if (deflateInit(&strm, Z_DEFAULT_COMPRESSION) != Z_OK) {
-        fprintf(stderr, "Помилка ініціалізації zlib.\n");
+        fprintf(stderr, "Error initializing zlib.\n");
         return -1;
     }
 
     in_fp = fopen(input_path, "rb");
-    if (in_fp == NULL) { perror("Помилка відкриття вхідного файлу"); result = -1; goto cleanup; }
+    if (in_fp == NULL) { perror("Error opening input file"); result = -1; goto cleanup; }
 
     out_fp = fopen(output_path, "wb");
-    if (out_fp == NULL) { perror("Помилка відкриття вихідного файлу"); result = -1; goto cleanup; }
+    if (out_fp == NULL) { perror("Error opening output file"); result = -1; goto cleanup; }
 
     do {
         strm.avail_in = fread(in, 1, CHUNK, in_fp);
@@ -70,7 +70,7 @@ cleanup:
     if (out_fp) fclose(out_fp);
 
     if (result != Z_OK && result != Z_STREAM_END && result != 0) {
-        fprintf(stderr, "Помилка стиснення ZLIB: %d\n", result);
+        fprintf(stderr, "ZLIB compression error: %d\n", result);
         return -1;
     }
     return 0;

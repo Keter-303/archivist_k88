@@ -7,4 +7,4 @@
 Custom Archiver K88
 
 ## Description
-Проєкт на C: програма-архіватор, що зможе об’єднувати кілька файлів або директорій в один архів із підтримкою стиснення та шифрування.
+C project: an archiver program that can combine multiple files or directories into a single archive with support for compression and encryption.

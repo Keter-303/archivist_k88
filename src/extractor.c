@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <zlib.h> 
 
-// Визначаємо розмір буфера для читання/запису (16 KB)
+
+
 #define CHUNK 16384 
 
 int extract_file(const char *input_path, const char *output_path, bool encrypt) {
@@ -20,15 +21,15 @@ int extract_file(const char *input_path, const char *output_path, bool encrypt) 
     strm.opaque = Z_NULL;
     
     if (inflateInit(&strm) != Z_OK) {
-        fprintf(stderr, "Помилка ініціалізації zlib (inflate).\n");
+        fprintf(stderr, "Error initializing zlib (inflate).\n");
         return -1;
     }
 
     in_fp = fopen(input_path, "rb");
-    if (in_fp == NULL) { perror("Помилка відкриття вхідного архіву"); result = -1; goto cleanup; }
+    if (in_fp == NULL) { perror("Error opening input archive"); result = -1; goto cleanup; }
 
     out_fp = fopen(output_path, "wb");
-    if (out_fp == NULL) { perror("Помилка відкриття вихідного файлу"); result = -1; goto cleanup; }
+    if (out_fp == NULL) { perror("Error opening output file"); result = -1; goto cleanup; }
     
     do {
         strm.avail_in = fread(in, 1, CHUNK, in_fp);
@@ -83,7 +84,7 @@ cleanup:
     if (out_fp) fclose(out_fp);
 
     if (result != 0) {
-        fprintf(stderr, "Помилка декомпресії ZLIB: %d\n", result);
+        fprintf(stderr, "ZLIB decompression error: %d\n", result);
         return -1;
     }
     return 0;

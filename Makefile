@@ -1,5 +1,4 @@
 TARGET = k88_test
-# змінюй помінімуму і не вписуй сюди логіку
 
 SRC_FILES = src/compressor.c src/extractor.c tests/tests.c src/crypto.c
 
@@ -13,12 +12,13 @@ all: $(TARGET)
 
 $(TARGET): $(SRC_FILES)
 	$(CC) $(CFLAGS) $(SRC_FILES) -o $(TARGET) $(LDFLAGS)
-	@echo "Виконавчий файл створено: $(TARGET)"
+	@echo "Executable created: $(TARGET)"
 
 
 run: $(TARGET)
-	@echo "Запуск тесту..."
+	@echo "Running test..."
 	./$(TARGET)
+
 
 
 clean:
