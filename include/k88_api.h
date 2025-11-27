@@ -5,24 +5,23 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h> 
-#include <stdbool.h> 
 
 
 
-// (--compress and --extract)
-int compress_file(const char *input_path, const char *output_path, bool encrypt);
-int extract_file(const char *input_path, const char *output_path, bool decrypt);
-
-// (--compress-dir and --extract-dir)
-int compress_directory(const char *input_path, const char *output_path, bool encrypt);
-int extract_directory(const char *input_path, const char *output_path, bool decrypt);
+int compress_file(const char *input_path, const char *output_path);
+int extract_file(const char *input_path, const char *output_path);
 
 
-// OpenSSL
+int compress_directory(const char *input_path, const char *output_path);
+int extract_directory(const char *input_path, const char *output_path);
+
+
+int encrypt_data(uint8_t *data, size_t len, const char *password, uint8_t **out_data, size_t *out_len);
+int decrypt_data(uint8_t *data, size_t len, const char *password, uint8_t **out_data, size_t *out_len);
+
+
 int encrypt_file_openssl(const char *in_path, const char *out_path, const char *key_phrase);
 int decrypt_file_openssl(const char *in_path, const char *out_path, const char *key_phrase);
-
-// (-h --help)
 void print_help(const char *program_name);
 
 #endif // K88_API_H
